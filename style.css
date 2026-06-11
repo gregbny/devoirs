@@ -130,6 +130,19 @@ button { font-family: inherit; cursor: pointer; }
 .btn-mix { margin-top: 24px; background: linear-gradient(135deg, #e17055, #fdcb6e); box-shadow: 0 5px 0 #d35400; }
 
 /* ===== anglais ===== */
+.eng-mode-switch { display: flex; gap: 12px; margin-bottom: 16px; }
+.eng-mode-switch button {
+  flex: 1;
+  border: none;
+  background: #fff;
+  border-radius: 999px;
+  padding: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  box-shadow: 0 3px 0 #e0d8c3;
+  opacity: .55;
+}
+.eng-mode-switch button.sel { opacity: 1; box-shadow: 0 3px 0 #fdcb6e; background: #ffeaa7; }
 .theme-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -176,6 +189,7 @@ button { font-family: inherit; cursor: pointer; }
 .eng-choices button:active { transform: translateY(2px); box-shadow: none; }
 .eng-choices button.good { background: #00b894; color: #fff; box-shadow: 0 4px 0 #019875; }
 .eng-choices button.bad { background: #d63031; color: #fff; box-shadow: 0 4px 0 #b71540; }
+.eng-choices button.emoji { font-size: 3rem; padding: 14px 8px; }
 
 /* ===== boutons génériques ===== */
 .btn-big {

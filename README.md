@@ -12,6 +12,7 @@ Deux profils : **Charlotte 🦄** et **Marcus 🦖** — chacun a ses étoiles, 
 - Choix de la table (2 à 10) ou mode « tout mélangé »
 - Sessions de 10 questions avec pavé numérique tactile
 - Étoiles (jusqu'à 3 par table), confettis, sons et encouragements
+- Révision intelligente : les multiplications ratées sont mémorisées et reviennent plus souvent, jusqu'à être réussies plusieurs fois
 
 ### ✏️ Mes mots
 - Un parent saisit la liste des mots de la semaine (coin des parents protégé par… une multiplication 😄)
@@ -21,7 +22,8 @@ Deux profils : **Charlotte 🦄** et **Marcus 🦖** — chacun a ses étoiles, 
 
 ### 🇬🇧 Anglais
 - Vocabulaire facile par thèmes (animaux, couleurs, nombres, nourriture, corps, école, famille)
-- Emoji + mot français → choisir le bon mot anglais parmi 4
+- Mode « 📖 Je lis » : emoji + mot français → choisir le bon mot anglais parmi 4
+- Mode « 👂 J'écoute » : le mot anglais est prononcé → retrouver le bon emoji (compréhension orale)
 - Prononciation anglaise à chaque réponse (synthèse vocale en-GB)
 
 ### 🔥 Streak

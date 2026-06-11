@@ -284,13 +284,35 @@
     show('quiz');
   }
 
+  /* révision intelligente : les multiplications ratées (pget 'weak') sont
+     reproposées plus souvent jusqu'à être réussies plusieurs fois */
+  function weakPool() {
+    var weak = pget('weak', {});
+    var keys = [];
+    for (var k in weak) {
+      if (weak[k] > 0) {
+        var t = parseInt(k.split('x')[0], 10);
+        if (quiz.table === 0 ? (t >= 2 && t <= 10) : t === quiz.table) keys.push(k);
+      }
+    }
+    return keys;
+  }
+
   function nextQuestion() {
     var a, b, key;
-    do {
-      a = quiz.table === 0 ? 2 + Math.floor(Math.random() * 9) : quiz.table;
-      b = 1 + Math.floor(Math.random() * 10);
-      key = a + 'x' + b;
-    } while (key === quiz.lastKey);
+    var pool = weakPool().filter(function (k) { return k !== quiz.lastKey; });
+    if (pool.length > 0 && Math.random() < 0.4) {
+      key = pool[Math.floor(Math.random() * pool.length)];
+      var parts = key.split('x');
+      a = parseInt(parts[0], 10);
+      b = parseInt(parts[1], 10);
+    } else {
+      do {
+        a = quiz.table === 0 ? 2 + Math.floor(Math.random() * 9) : quiz.table;
+        b = 1 + Math.floor(Math.random() * 10);
+        key = a + 'x' + b;
+      } while (key === quiz.lastKey);
+    }
     quiz.lastKey = key;
     quiz.a = a; quiz.b = b;
     quiz.typed = '';
@@ -322,6 +344,19 @@
     quiz.locked = true;
     var good = parseInt(quiz.typed, 10) === quiz.a * quiz.b;
     var fb = $('quiz-feedback');
+    /* mémorise les ratés : +2 par erreur, -1 par réussite (effacé à 0) */
+    var weak = pget('weak', {});
+    var wkey = quiz.a + 'x' + quiz.b;
+    if (good) {
+      if (weak[wkey]) {
+        weak[wkey]--;
+        if (weak[wkey] <= 0) delete weak[wkey];
+        pset('weak', weak);
+      }
+    } else {
+      weak[wkey] = Math.min((weak[wkey] || 0) + 2, 6);
+      pset('weak', weak);
+    }
     if (good) {
       quiz.score++;
       fb.textContent = ['Bravo !', 'Super !', 'Génial !', 'Champion !'][Math.floor(Math.random() * 4)] + ' 🎉';
@@ -541,7 +576,17 @@
     ] }
   ];
 
-  var eng = { theme: 0, list: [], index: 0, score: 0, locked: false };
+  var eng = { theme: 0, list: [], index: 0, score: 0, locked: false, mode: 'read' };
+
+  $('eng-mode-switch').addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-engmode]');
+    if (!btn) return;
+    eng.mode = btn.getAttribute('data-engmode');
+    var all = document.querySelectorAll('[data-engmode]');
+    for (var i = 0; i < all.length; i++) {
+      all[i].classList.toggle('sel', all[i] === btn);
+    }
+  });
 
   function themeStars(i) {
     return pget('english', {})['t' + i] || 0;
@@ -589,8 +634,14 @@
   function nextEnglish() {
     var word = eng.list[eng.index];
     eng.locked = false;
-    $('eng-emoji').textContent = word[2];
-    $('eng-fr').textContent = word[1];
+    if (eng.mode === 'listen') {
+      $('eng-emoji').textContent = '🔊';
+      $('eng-fr').textContent = 'Écoute et trouve !';
+      speakEnglish(word[0]);
+    } else {
+      $('eng-emoji').textContent = word[2];
+      $('eng-fr').textContent = word[1];
+    }
     $('eng-feedback').textContent = '';
     $('eng-feedback').className = 'quiz-feedback';
     $('eng-progress-fill').style.width = (eng.index / eng.list.length * 100) + '%';
@@ -602,11 +653,19 @@
     box.innerHTML = '';
     for (var i = 0; i < choices.length; i++) {
       var btn = document.createElement('button');
-      btn.textContent = choices[i][0];
+      btn.textContent = eng.mode === 'listen' ? choices[i][2] : choices[i][0];
+      if (eng.mode === 'listen') btn.className = 'emoji';
       btn.setAttribute('data-eng', choices[i][0]);
       box.appendChild(btn);
     }
   }
+
+  /* en mode écoute, taper sur le 🔊 rejoue le mot */
+  $('eng-emoji').addEventListener('click', function () {
+    if (eng.mode === 'listen' && !eng.locked && eng.index < eng.list.length) {
+      speakEnglish(eng.list[eng.index][0]);
+    }
+  });
 
   $('eng-choices').addEventListener('click', function (e) {
     var btn = e.target.closest('[data-eng]');
@@ -628,9 +687,15 @@
       for (var i = 0; i < all.length; i++) {
         if (all[i].getAttribute('data-eng') === word[0]) all[i].classList.add('good');
       }
-      fb.textContent = word[1] + ' = « ' + word[0] + ' » 💪';
+      fb.textContent = eng.mode === 'listen'
+        ? '« ' + word[0] + ' » = ' + word[1] + ' 💪'
+        : word[1] + ' = « ' + word[0] + ' » 💪';
       fb.className = 'quiz-feedback bad';
       soundBad();
+    }
+    if (eng.mode === 'listen') {
+      $('eng-emoji').textContent = word[2];
+      $('eng-fr').textContent = word[1];
     }
     speakEnglish(word[0]);
     $('eng-score').textContent = eng.score;
@@ -651,7 +716,7 @@
       pset('english', themes);
     }
     addStars(stars);
-    var grew = recordSession({ t: 'anglais', theme: ENGLISH[eng.theme].name, score: eng.score, total: total, stars: stars });
+    var grew = recordSession({ t: 'anglais', theme: ENGLISH[eng.theme].name + (eng.mode === 'listen' ? ' 👂' : ''), score: eng.score, total: total, stars: stars });
     $('result-emoji').textContent = stars === 3 ? '🏆' : stars === 2 ? '🥳' : stars === 1 ? '😊' : '💪';
     $('result-stars').textContent = starString(stars);
     $('result-text').textContent = eng.score + ' / ' + total + (stars === 3 ? ' — Perfect!!' : stars >= 1 ? ' — Well done!' : ' — Tu vas y arriver, réessaie !') + streakText(grew);
