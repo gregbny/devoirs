@@ -54,7 +54,6 @@
         <span class="card-sub">Écris tes mots de la semaine</span>
       </button>
     </div>
-    <button class="btn-big btn-progress" data-go="progress">📈 Mes progrès</button>
     <footer class="home-footer">Fait avec ❤️ pour apprendre en s'amusant</footer>
   </section>
 
@@ -140,12 +139,16 @@
     </div>
   </section>
 
-  <!-- ===== Progrès ===== -->
+  <!-- ===== Progrès (coin des parents) ===== -->
   <section id="screen-progress" class="screen">
     <header class="bar">
-      <button class="btn-back" data-go="home">←</button>
-      <h2 id="progress-title">Mes progrès</h2>
+      <button class="btn-back" data-go="parents">←</button>
+      <h2>📈 Progrès</h2>
     </header>
+    <div class="progress-switch">
+      <button data-pview="charlotte">🦄 Charlotte</button>
+      <button data-pview="marcus">🦖 Marcus</button>
+    </div>
     <div id="progress-list" class="progress-list"></div>
   </section>
 
@@ -165,6 +168,7 @@
       <textarea id="words-textarea" rows="12" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="bonjour&#10;maison&#10;chocolat"></textarea>
       <button class="btn-big" id="btn-save-words">💾 Enregistrer la liste</button>
       <p class="small" id="save-confirm"></p>
+      <button class="btn-big btn-ghost" data-go="progress">📈 Voir les progrès</button>
     </div>
   </section>
 

@@ -89,7 +89,6 @@ button { font-family: inherit; cursor: pointer; }
 .card-emoji { font-size: 3.4rem; }
 .card-title { font-size: 1.7rem; font-weight: 800; }
 .card-sub { font-size: 1rem; opacity: .9; }
-.btn-big.btn-progress { margin-top: 28px; background: #fff; color: #2d3436; box-shadow: 0 5px 0 #e0d8c3; }
 .home-footer { margin-top: auto; text-align: center; color: #b2a98f; padding-top: 32px; font-size: .9rem; }
 
 /* ===== barre du haut ===== */
@@ -272,6 +271,19 @@ button { font-family: inherit; cursor: pointer; }
 #word-input:focus { outline: none; border-color: #6c5ce7; }
 
 /* ===== progrès ===== */
+.progress-switch { display: flex; gap: 12px; margin-bottom: 18px; }
+.progress-switch button {
+  flex: 1;
+  border: none;
+  background: #fff;
+  border-radius: 999px;
+  padding: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  box-shadow: 0 3px 0 #e0d8c3;
+  opacity: .55;
+}
+.progress-switch button.sel { opacity: 1; box-shadow: 0 3px 0 #fdcb6e; background: #ffeaa7; }
 .progress-list { display: flex; flex-direction: column; gap: 18px; padding-bottom: 16px; }
 .progress-empty { text-align: center; margin-top: 60px; font-size: 1.3rem; line-height: 1.7; }
 .progress-day {

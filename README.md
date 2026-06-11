@@ -19,9 +19,9 @@ Deux profils : **Charlotte 🦄** et **Marcus 🦖** — chacun a ses étoiles, 
 - Lecture du mot à voix haute (synthèse vocale fr-FR)
 - Mode champion : le mot est caché pendant l'écriture, pour le mémoriser
 
-### 📈 Mes progrès
+### 📈 Progrès (coin des parents)
 - Chaque session est enregistrée (heure, activité, score, étoiles)
-- Historique groupé par jour, pour suivre les progrès semaine après semaine
+- Historique groupé par jour, consultable dans le coin des parents, avec bascule Charlotte/Marcus
 
 ## Installation sur iPad
 

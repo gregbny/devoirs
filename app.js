@@ -33,7 +33,7 @@
     if (name === 'home') refreshHome();
     if (name === 'tables') renderTableGrid();
     if (name === 'words') renderWordsHome();
-    if (name === 'progress') renderProgress();
+    if (name === 'progress') { progressView = profile; renderProgress(); }
     window.scrollTo(0, 0);
   }
 
@@ -86,11 +86,24 @@
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
+  /* profil affiché sur l'écran progrès (les parents peuvent comparer les deux) */
+  var progressView = null;
+
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-pview]');
+    if (!el) return;
+    progressView = el.getAttribute('data-pview');
+    renderProgress();
+  });
+
   function renderProgress() {
-    var p = PROFILES[profile];
-    $('progress-title').textContent = 'Progrès de ' + p.name + ' ' + p.avatar;
+    if (!progressView) progressView = profile;
+    var chips = document.querySelectorAll('[data-pview]');
+    for (var c = 0; c < chips.length; c++) {
+      chips[c].classList.toggle('sel', chips[c].getAttribute('data-pview') === progressView);
+    }
     var list = $('progress-list');
-    var hist = pget('history', []);
+    var hist = rawGet(progressView + '.history', []);
     if (hist.length === 0) {
       list.innerHTML = '<p class="progress-empty">📭 Pas encore de session…<br>Joue pour remplir cette page !</p>';
       return;
@@ -504,8 +517,7 @@
   var saved = rawGet('profile', null);
   if (saved && PROFILES[saved]) {
     profile = saved;
-    /* deep-link : .../#progress ouvre directement les progrès */
-    show(location.hash === '#progress' ? 'progress' : 'home');
+    show('home');
   } else {
     show('profile');
   }
