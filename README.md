@@ -6,6 +6,8 @@ Une petite PWA pour rendre les devoirs ludiques, pensée pour un enfant de 7 ans
 
 ## Les activités
 
+Deux profils : **Charlotte 🦄** et **Marcus 🦖** — chacun a ses étoiles, sa liste de mots et ses progrès.
+
 ### ✖️ Multiplications
 - Choix de la table (2 à 10) ou mode « tout mélangé »
 - Sessions de 10 questions avec pavé numérique tactile
@@ -13,9 +15,13 @@ Une petite PWA pour rendre les devoirs ludiques, pensée pour un enfant de 7 ans
 
 ### ✏️ Mes mots
 - Un parent saisit la liste des mots de la semaine (coin des parents protégé par… une multiplication 😄)
-- L'enfant recopie chaque mot **au clavier** (vérification automatique) ou **au stylet** sur un cahier ligné (Apple Pencil ou doigt, avec auto-évaluation)
+- L'enfant recopie chaque mot au clavier, avec vérification automatique
 - Lecture du mot à voix haute (synthèse vocale fr-FR)
 - Mode champion : le mot est caché pendant l'écriture, pour le mémoriser
+
+### 📈 Mes progrès
+- Chaque session est enregistrée (heure, activité, score, étoiles)
+- Historique groupé par jour, pour suivre les progrès semaine après semaine
 
 ## Installation sur iPad
 

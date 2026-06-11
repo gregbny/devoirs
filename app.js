@@ -2,18 +2,26 @@
 (function () {
   'use strict';
 
-  /* ---------- stockage ---------- */
-  var store = {
-    get: function (key, fallback) {
-      try {
-        var raw = localStorage.getItem('devoirs.' + key);
-        return raw === null ? fallback : JSON.parse(raw);
-      } catch (e) { return fallback; }
-    },
-    set: function (key, value) {
-      try { localStorage.setItem('devoirs.' + key, JSON.stringify(value)); } catch (e) {}
-    }
+  /* ---------- profils ---------- */
+  var PROFILES = {
+    charlotte: { name: 'Charlotte', avatar: '🦄' },
+    marcus: { name: 'Marcus', avatar: '🦖' }
   };
+  var profile = null; /* 'charlotte' | 'marcus' */
+
+  /* ---------- stockage ---------- */
+  function rawGet(key, fallback) {
+    try {
+      var raw = localStorage.getItem('devoirs.' + key);
+      return raw === null ? fallback : JSON.parse(raw);
+    } catch (e) { return fallback; }
+  }
+  function rawSet(key, value) {
+    try { localStorage.setItem('devoirs.' + key, JSON.stringify(value)); } catch (e) {}
+  }
+  /* données propres au profil actif */
+  function pget(key, fallback) { return rawGet(profile + '.' + key, fallback); }
+  function pset(key, value) { rawSet(profile + '.' + key, value); }
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -22,9 +30,10 @@
     var screens = document.querySelectorAll('.screen');
     for (var i = 0; i < screens.length; i++) screens[i].classList.remove('active');
     $('screen-' + name).classList.add('active');
-    if (name === 'home') refreshStarBank();
+    if (name === 'home') refreshHome();
     if (name === 'tables') renderTableGrid();
     if (name === 'words') renderWordsHome();
+    if (name === 'progress') renderProgress();
     window.scrollTo(0, 0);
   }
 
@@ -33,12 +42,92 @@
     if (el) show(el.getAttribute('data-go'));
   });
 
-  /* ---------- étoiles ---------- */
+  /* choix / changement de profil */
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-profile]');
+    if (!el) return;
+    profile = el.getAttribute('data-profile');
+    rawSet('profile', profile);
+    show('home');
+  });
+  $('btn-profile').addEventListener('click', function () { show('profile'); });
+
+  /* ---------- étoiles & accueil ---------- */
   function addStars(n) {
-    store.set('stars', store.get('stars', 0) + n);
+    pset('stars', pget('stars', 0) + n);
   }
-  function refreshStarBank() {
-    $('star-total').textContent = store.get('stars', 0);
+  function refreshHome() {
+    var p = PROFILES[profile];
+    $('star-total').textContent = pget('stars', 0);
+    $('btn-profile').textContent = p.avatar + ' ' + p.name;
+  }
+
+  /* ---------- historique des sessions ---------- */
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function todayKey() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+  function recordSession(entry) {
+    var d = new Date();
+    entry.d = todayKey();
+    entry.h = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    var hist = pget('history', []);
+    hist.push(entry);
+    if (hist.length > 400) hist = hist.slice(hist.length - 400);
+    pset('history', hist);
+  }
+
+  function formatDay(key) {
+    if (key === todayKey()) return "Aujourd'hui";
+    var parts = key.split('-');
+    var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    var s = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function renderProgress() {
+    var p = PROFILES[profile];
+    $('progress-title').textContent = 'Progrès de ' + p.name + ' ' + p.avatar;
+    var list = $('progress-list');
+    var hist = pget('history', []);
+    if (hist.length === 0) {
+      list.innerHTML = '<p class="progress-empty">📭 Pas encore de session…<br>Joue pour remplir cette page !</p>';
+      return;
+    }
+    /* groupement par jour, du plus récent au plus ancien */
+    var days = [];
+    var byDay = {};
+    for (var i = hist.length - 1; i >= 0; i--) {
+      var e = hist[i];
+      if (!byDay[e.d]) { byDay[e.d] = []; days.push(e.d); }
+      byDay[e.d].push(e);
+    }
+    var html = '';
+    for (var j = 0; j < days.length && j < 30; j++) {
+      var day = days[j];
+      var entries = byDay[day];
+      var dayStars = 0;
+      var rows = '';
+      for (var k = 0; k < entries.length; k++) {
+        var s = entries[k];
+        dayStars += s.stars || 0;
+        var label = s.t === 'quiz'
+          ? (s.table === 0 ? '🎲 Tout mélangé' : '✖️ Table de ' + s.table)
+          : '✏️ Mes mots';
+        rows += '<div class="progress-row">' +
+          '<span class="progress-time">' + s.h + '</span>' +
+          '<span class="progress-label">' + label + '</span>' +
+          '<span class="progress-score">' + s.score + '/' + s.total + '</span>' +
+          '<span class="progress-stars">' + (s.stars ? '⭐ ' + s.stars : '—') + '</span>' +
+          '</div>';
+      }
+      html += '<div class="progress-day">' +
+        '<div class="progress-day-head"><span>' + formatDay(day) + '</span>' +
+        '<span class="progress-day-total">' + entries.length + ' session' + (entries.length > 1 ? 's' : '') + ' · ⭐ ' + dayStars + '</span></div>' +
+        rows + '</div>';
+    }
+    list.innerHTML = html;
   }
 
   /* ---------- sons ---------- */
@@ -114,10 +203,10 @@
      ================================================================ */
   var QUIZ_LEN = 10;
   var quiz = { table: 0, index: 0, score: 0, a: 0, b: 0, typed: '', locked: false, lastKey: '' };
+  var lastActivity = 'quiz';
 
   function tableStars(t) {
-    var best = store.get('tables', {})['t' + t] || 0;
-    return best;
+    return pget('tables', {})['t' + t] || 0;
   }
 
   function starString(n) {
@@ -214,13 +303,14 @@
     lastActivity = 'quiz';
     var stars = quiz.score >= 10 ? 3 : quiz.score >= 8 ? 2 : quiz.score >= 5 ? 1 : 0;
     if (quiz.table !== 0) {
-      var tables = store.get('tables', {});
+      var tables = pget('tables', {});
       if (stars > (tables['t' + quiz.table] || 0)) {
         tables['t' + quiz.table] = stars;
-        store.set('tables', tables);
+        pset('tables', tables);
       }
     }
     addStars(stars);
+    recordSession({ t: 'quiz', table: quiz.table, score: quiz.score, total: QUIZ_LEN, stars: stars });
     $('result-emoji').textContent = stars === 3 ? '🏆' : stars === 2 ? '🥳' : stars === 1 ? '😊' : '💪';
     $('result-stars').textContent = starString(stars);
     $('result-text').textContent = quiz.score + ' / ' + QUIZ_LEN + (stars === 3 ? ' — Parfait !!' : stars >= 1 ? ' — Bien joué !' : ' — Tu vas y arriver, réessaie !');
@@ -228,18 +318,17 @@
     if (stars >= 2) { soundWin(); confetti(140); }
   }
 
-  var lastActivity = 'quiz';
   $('btn-replay').addEventListener('click', function () {
-    if (lastActivity === 'words') startWords(words.mode);
+    if (lastActivity === 'words') startWords();
     else startQuiz(quiz.table);
   });
 
   /* ================================================================
      MOTS DE LA SEMAINE
      ================================================================ */
-  var words = { list: [], index: 0, score: 0, mode: 'keyboard', hide: false };
+  var words = { list: [], index: 0, score: 0, hide: false };
 
-  function getWordList() { return store.get('words', []); }
+  function getWordList() { return pget('words', []); }
 
   function renderWordsHome() {
     var list = getWordList();
@@ -254,9 +343,6 @@
     }
   }
 
-  $('btn-words-keyboard').addEventListener('click', function () { startWords('keyboard'); });
-  $('btn-words-pen').addEventListener('click', function () { startWords('pen'); });
-
   function shuffle(arr) {
     var a = arr.slice();
     for (var i = a.length - 1; i > 0; i--) {
@@ -266,19 +352,15 @@
     return a;
   }
 
-  function startWords(mode) {
+  function startWords() {
     words.list = shuffle(getWordList());
     words.index = 0;
     words.score = 0;
-    words.mode = mode;
     words.hide = $('chk-hide-word').checked;
-    $('word-keyboard-zone').classList.toggle('hidden', mode !== 'keyboard');
-    $('word-pen-zone').classList.toggle('hidden', mode !== 'pen');
-    $('word-judge-zone').classList.add('hidden');
     show('word-practice');
-    if (mode === 'pen') setupCanvas();
     showWord();
   }
+  $('btn-words-go').addEventListener('click', startWords);
 
   function currentWord() { return words.list[words.index]; }
 
@@ -290,14 +372,8 @@
     $('word-feedback').className = 'quiz-feedback';
     $('word-progress-fill').style.width = (words.index / words.list.length * 100) + '%';
     $('word-score').textContent = words.score;
-    if (words.mode === 'keyboard') {
-      $('word-input').value = '';
-      $('word-input').focus();
-    } else {
-      clearCanvas();
-      $('word-pen-zone').classList.remove('hidden');
-      $('word-judge-zone').classList.add('hidden');
-    }
+    $('word-input').value = '';
+    $('word-input').focus();
     speakWord();
   }
 
@@ -344,6 +420,7 @@
 
   function endWords() {
     lastActivity = 'words';
+    recordSession({ t: 'mots', score: words.score, total: words.list.length, stars: words.score });
     $('result-emoji').textContent = '🌟';
     $('result-stars').textContent = '⭐⭐⭐';
     $('result-text').textContent = 'Tous tes mots sont écrits ! ' + words.score + ' étoile' + (words.score > 1 ? 's' : '') + ' gagnée' + (words.score > 1 ? 's' : '') + ' !';
@@ -352,7 +429,6 @@
     confetti(140);
   }
 
-  /* --- mode clavier --- */
   function checkTypedWord() {
     var typed = normalize($('word-input').value);
     if (typed === '') return;
@@ -371,92 +447,6 @@
   $('btn-word-check').addEventListener('click', checkTypedWord);
   $('word-input').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') checkTypedWord();
-  });
-
-  /* --- mode stylet --- */
-  var pen = { drawing: false, color: '#2d3436', ctx: null, canvas: null, hasInk: false };
-
-  function setupCanvas() {
-    var canvas = $('pen-canvas');
-    pen.canvas = canvas;
-    pen.ctx = canvas.getContext('2d');
-    requestAnimationFrame(function () {
-      var r = canvas.getBoundingClientRect();
-      var dpr = window.devicePixelRatio || 1;
-      canvas.width = r.width * dpr;
-      canvas.height = r.height * dpr;
-      pen.ctx.scale(dpr, dpr);
-      pen.ctx.lineCap = 'round';
-      pen.ctx.lineJoin = 'round';
-    });
-  }
-
-  function clearCanvas() {
-    if (!pen.ctx) return;
-    pen.ctx.clearRect(0, 0, pen.canvas.width, pen.canvas.height);
-    pen.hasInk = false;
-  }
-
-  (function () {
-    var canvas = $('pen-canvas');
-    function pos(e) {
-      var r = canvas.getBoundingClientRect();
-      return { x: e.clientX - r.left, y: e.clientY - r.top };
-    }
-    canvas.addEventListener('pointerdown', function (e) {
-      e.preventDefault();
-      pen.drawing = true;
-      pen.hasInk = true;
-      var p = pos(e);
-      pen.ctx.beginPath();
-      pen.ctx.moveTo(p.x, p.y);
-      canvas.setPointerCapture(e.pointerId);
-    });
-    canvas.addEventListener('pointermove', function (e) {
-      if (!pen.drawing) return;
-      e.preventDefault();
-      var p = pos(e);
-      var pressure = (e.pointerType === 'pen' && e.pressure > 0) ? e.pressure : 0.5;
-      pen.ctx.lineWidth = 2 + pressure * 7;
-      pen.ctx.strokeStyle = pen.color;
-      pen.ctx.lineTo(p.x, p.y);
-      pen.ctx.stroke();
-      pen.ctx.beginPath();
-      pen.ctx.moveTo(p.x, p.y);
-    });
-    function up() { pen.drawing = false; }
-    canvas.addEventListener('pointerup', up);
-    canvas.addEventListener('pointercancel', up);
-  })();
-
-  $('btn-pen-clear').addEventListener('click', clearCanvas);
-
-  $('pen-colors').addEventListener('click', function (e) {
-    var btn = e.target.closest('.pen-color');
-    if (!btn) return;
-    pen.color = btn.getAttribute('data-color');
-    var all = document.querySelectorAll('.pen-color');
-    for (var i = 0; i < all.length; i++) all[i].classList.remove('sel');
-    btn.classList.add('sel');
-  });
-
-  $('btn-pen-done').addEventListener('click', function () {
-    if (!pen.hasInk) return;
-    $('word-model').classList.remove('masked');
-    $('word-pen-zone').classList.add('hidden');
-    $('word-judge-zone').classList.remove('hidden');
-  });
-
-  $('btn-judge-yes').addEventListener('click', function () {
-    $('word-judge-zone').classList.add('hidden');
-    $('word-pen-zone').classList.remove('hidden');
-    wordSuccess();
-  });
-  $('btn-judge-retry').addEventListener('click', function () {
-    $('word-judge-zone').classList.add('hidden');
-    $('word-pen-zone').classList.remove('hidden');
-    if (words.hide) $('word-model').classList.add('masked');
-    clearCanvas();
   });
 
   /* ================================================================
@@ -480,6 +470,8 @@
     if (parseInt($('gate-input').value, 10) === gate.answer) {
       $('parents-gate').classList.add('hidden');
       $('parents-panel').classList.remove('hidden');
+      var p = PROFILES[profile];
+      $('parents-for').textContent = 'Les mots de la semaine de ' + p.name + ' ' + p.avatar + ', un par ligne :';
       $('words-textarea').value = getWordList().join('\n');
     } else {
       $('gate-input').value = '';
@@ -497,7 +489,7 @@
       var w = lines[i].trim();
       if (w !== '') list.push(w);
     }
-    store.set('words', list);
+    pset('words', list);
     $('save-confirm').textContent = '✅ ' + list.length + ' mot' + (list.length > 1 ? 's' : '') + ' enregistré' + (list.length > 1 ? 's' : '') + ' !';
   });
 
@@ -508,5 +500,13 @@
     });
   }
 
-  refreshStarBank();
+  /* ---------- démarrage ---------- */
+  var saved = rawGet('profile', null);
+  if (saved && PROFILES[saved]) {
+    profile = saved;
+    /* deep-link : .../#progress ouvre directement les progrès */
+    show(location.hash === '#progress' ? 'progress' : 'home');
+  } else {
+    show('profile');
+  }
 })();

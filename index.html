@@ -16,11 +16,31 @@
 </head>
 <body>
 
+  <!-- ===== Choix du profil ===== -->
+  <section id="screen-profile" class="screen">
+    <div class="profile-body">
+      <h1 class="profile-title">Qui es-tu ? 🎒</h1>
+      <div class="profile-cards">
+        <button class="profile-card profile-charlotte" data-profile="charlotte">
+          <span class="profile-avatar">🦄</span>
+          <span class="profile-name">Charlotte</span>
+        </button>
+        <button class="profile-card profile-marcus" data-profile="marcus">
+          <span class="profile-avatar">🦖</span>
+          <span class="profile-name">Marcus</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
   <!-- ===== Accueil ===== -->
-  <section id="screen-home" class="screen active">
+  <section id="screen-home" class="screen">
     <header class="home-header">
       <h1>Mes Devoirs <span class="wave">🎒</span></h1>
-      <div class="star-bank" id="star-bank">⭐ <span id="star-total">0</span></div>
+      <div class="home-header-right">
+        <button class="profile-chip" id="btn-profile">🦄 Charlotte</button>
+        <div class="star-bank" id="star-bank">⭐ <span id="star-total">0</span></div>
+      </div>
     </header>
     <div class="home-cards">
       <button class="home-card card-tables" data-go="tables">
@@ -34,6 +54,7 @@
         <span class="card-sub">Écris tes mots de la semaine</span>
       </button>
     </div>
+    <button class="btn-big btn-progress" data-go="progress">📈 Mes progrès</button>
     <footer class="home-footer">Fait avec ❤️ pour apprendre en s'amusant</footer>
   </section>
 
@@ -67,7 +88,7 @@
     </div>
   </section>
 
-  <!-- ===== Fin de quiz ===== -->
+  <!-- ===== Fin de session ===== -->
   <section id="screen-result" class="screen">
     <div class="result-body">
       <div class="result-emoji" id="result-emoji">🏆</div>
@@ -91,10 +112,7 @@
     </div>
     <div id="words-start" class="words-start hidden">
       <ul class="word-list" id="word-list"></ul>
-      <div class="words-modes">
-        <button class="btn-big" id="btn-words-keyboard">⌨️ Au clavier</button>
-        <button class="btn-big" id="btn-words-pen">🖊️ Au stylet</button>
-      </div>
+      <button class="btn-big btn-words-go" id="btn-words-go">▶️ C'est parti !</button>
       <label class="hide-toggle"><input type="checkbox" id="chk-hide-word"> 🙈 Cacher le mot pendant que j'écris (mode champion)</label>
     </div>
   </section>
@@ -114,35 +132,21 @@
           <button class="btn-round" id="btn-peek" title="Voir le mot">👀</button>
         </div>
       </div>
-      <!-- mode clavier -->
-      <div id="word-keyboard-zone" class="hidden">
+      <div id="word-keyboard-zone">
         <input id="word-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Écris le mot ici…">
         <button class="btn-big" id="btn-word-check">✓ Vérifier</button>
       </div>
-      <!-- mode stylet -->
-      <div id="word-pen-zone" class="hidden">
-        <canvas id="pen-canvas"></canvas>
-        <div class="pen-tools">
-          <button class="btn-round" id="btn-pen-clear" title="Effacer">🧽</button>
-          <div class="pen-colors" id="pen-colors">
-            <button class="pen-color sel" data-color="#2d3436" style="background:#2d3436"></button>
-            <button class="pen-color" data-color="#0984e3" style="background:#0984e3"></button>
-            <button class="pen-color" data-color="#d63031" style="background:#d63031"></button>
-            <button class="pen-color" data-color="#00b894" style="background:#00b894"></button>
-          </div>
-          <button class="btn-big btn-pen-done" id="btn-pen-done">✓ J'ai fini</button>
-        </div>
-      </div>
-      <!-- auto-évaluation stylet -->
-      <div id="word-judge-zone" class="hidden">
-        <p class="judge-question">Compare avec le modèle : c'est bien écrit ?</p>
-        <div class="judge-buttons">
-          <button class="btn-big btn-yes" id="btn-judge-yes">😄 Oui !</button>
-          <button class="btn-big btn-retry" id="btn-judge-retry">🔁 Je réessaie</button>
-        </div>
-      </div>
       <div class="quiz-feedback" id="word-feedback"></div>
     </div>
+  </section>
+
+  <!-- ===== Progrès ===== -->
+  <section id="screen-progress" class="screen">
+    <header class="bar">
+      <button class="btn-back" data-go="home">←</button>
+      <h2 id="progress-title">Mes progrès</h2>
+    </header>
+    <div id="progress-list" class="progress-list"></div>
   </section>
 
   <!-- ===== Réglages parents ===== -->
@@ -157,7 +161,7 @@
       <button class="btn-big" id="btn-gate-ok">Entrer</button>
     </div>
     <div id="parents-panel" class="parents-panel hidden">
-      <p>Les mots de la semaine, un par ligne :</p>
+      <p id="parents-for">Les mots de la semaine, un par ligne :</p>
       <textarea id="words-textarea" rows="12" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="bonjour&#10;maison&#10;chocolat"></textarea>
       <button class="btn-big" id="btn-save-words">💾 Enregistrer la liste</button>
       <p class="small" id="save-confirm"></p>
