@@ -1,0 +1,16 @@
+{
+  "name": "Mes Devoirs",
+  "short_name": "Devoirs",
+  "description": "Apprendre les tables de multiplication et ses mots de la semaine en s'amusant.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fdf6e3",
+  "theme_color": "#6c5ce7",
+  "icons": [
+    { "src": "./icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
