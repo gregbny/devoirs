@@ -39,6 +39,7 @@
       <h1>Mes Devoirs <span class="wave">🎒</span></h1>
       <div class="home-header-right">
         <button class="profile-chip" id="btn-profile">🦄 Charlotte</button>
+        <div class="star-bank streak-bank">🔥 <span id="streak-total">0</span></div>
         <div class="star-bank" id="star-bank">⭐ <span id="star-total">0</span></div>
       </div>
     </header>
@@ -52,6 +53,11 @@
         <span class="card-emoji">✏️</span>
         <span class="card-title">Mes mots</span>
         <span class="card-sub">Écris tes mots de la semaine</span>
+      </button>
+      <button class="home-card card-english" data-go="english-themes">
+        <span class="card-emoji">🇬🇧</span>
+        <span class="card-title">Anglais</span>
+        <span class="card-sub">Découvre des mots en anglais !</span>
       </button>
     </div>
     <footer class="home-footer">Fait avec ❤️ pour apprendre en s'amusant</footer>
@@ -85,6 +91,30 @@
       <button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button>
       <button data-key="back" class="key-back">⌫</button><button data-key="0">0</button><button data-key="ok" class="key-ok">✓</button>
     </div>
+  </section>
+
+  <!-- ===== Anglais : choix du thème ===== -->
+  <section id="screen-english-themes" class="screen">
+    <header class="bar">
+      <button class="btn-back" data-go="home">←</button>
+      <h2>Choisis un thème</h2>
+    </header>
+    <div class="theme-grid" id="theme-grid"></div>
+  </section>
+
+  <!-- ===== Anglais : quiz ===== -->
+  <section id="screen-english" class="screen">
+    <header class="bar">
+      <button class="btn-back" data-go="english-themes">←</button>
+      <div class="quiz-progress"><div class="quiz-progress-fill" id="eng-progress-fill"></div></div>
+      <div class="quiz-score" id="eng-score">0</div>
+    </header>
+    <div class="eng-body">
+      <div class="eng-emoji" id="eng-emoji">🐶</div>
+      <div class="eng-fr" id="eng-fr">le chien</div>
+      <div class="quiz-feedback" id="eng-feedback"></div>
+    </div>
+    <div class="eng-choices" id="eng-choices"></div>
   </section>
 
   <!-- ===== Fin de session ===== -->

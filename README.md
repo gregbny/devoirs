@@ -19,6 +19,14 @@ Deux profils : **Charlotte 🦄** et **Marcus 🦖** — chacun a ses étoiles, 
 - Lecture du mot à voix haute (synthèse vocale fr-FR)
 - Mode champion : le mot est caché pendant l'écriture, pour le mémoriser
 
+### 🇬🇧 Anglais
+- Vocabulaire facile par thèmes (animaux, couleurs, nombres, nourriture, corps, école, famille)
+- Emoji + mot français → choisir le bon mot anglais parmi 4
+- Prononciation anglaise à chaque réponse (synthèse vocale en-GB)
+
+### 🔥 Streak
+- Compteur de jours d'affilée avec au moins une session, affiché sur l'accueil
+
 ### 📈 Progrès (coin des parents)
 - Chaque session est enregistrée (heure, activité, score, étoiles)
 - Historique groupé par jour, consultable dans le coin des parents, avec bascule Charlotte/Marcus

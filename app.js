@@ -33,6 +33,7 @@
     if (name === 'home') refreshHome();
     if (name === 'tables') renderTableGrid();
     if (name === 'words') renderWordsHome();
+    if (name === 'english-themes') renderThemeGrid();
     if (name === 'progress') { progressView = profile; renderProgress(); }
     window.scrollTo(0, 0);
   }
@@ -59,15 +60,38 @@
   function refreshHome() {
     var p = PROFILES[profile];
     $('star-total').textContent = pget('stars', 0);
+    $('streak-total').textContent = currentStreak();
     $('btn-profile').textContent = p.avatar + ' ' + p.name;
   }
 
-  /* ---------- historique des sessions ---------- */
+  /* ---------- dates ---------- */
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
-  function todayKey() {
-    var d = new Date();
+  function dayKey(d) {
     return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
   }
+  function todayKey() { return dayKey(new Date()); }
+  function yesterdayKey() {
+    var d = new Date();
+    d.setDate(d.getDate() - 1);
+    return dayKey(d);
+  }
+
+  /* ---------- streak : jours d'affilée avec au moins une session ---------- */
+  function currentStreak() {
+    var st = pget('streak', { count: 0, last: '' });
+    return (st.last === todayKey() || st.last === yesterdayKey()) ? st.count : 0;
+  }
+  /* renvoie le nouveau compteur si la série vient de grandir aujourd'hui, sinon 0 */
+  function updateStreak() {
+    var st = pget('streak', { count: 0, last: '' });
+    if (st.last === todayKey()) return 0;
+    st.count = st.last === yesterdayKey() ? st.count + 1 : 1;
+    st.last = todayKey();
+    pset('streak', st);
+    return st.count;
+  }
+
+  /* ---------- historique des sessions ---------- */
   function recordSession(entry) {
     var d = new Date();
     entry.d = todayKey();
@@ -76,6 +100,10 @@
     hist.push(entry);
     if (hist.length > 400) hist = hist.slice(hist.length - 400);
     pset('history', hist);
+    return updateStreak();
+  }
+  function streakText(grew) {
+    return grew >= 2 ? ' 🔥 ' + grew + " jours d'affilée !" : '';
   }
 
   function formatDay(key) {
@@ -127,6 +155,7 @@
         dayStars += s.stars || 0;
         var label = s.t === 'quiz'
           ? (s.table === 0 ? '🎲 Tout mélangé' : '✖️ Table de ' + s.table)
+          : s.t === 'anglais' ? '🇬🇧 ' + (s.theme || 'Anglais')
           : '✏️ Mes mots';
         rows += '<div class="progress-row">' +
           '<span class="progress-time">' + s.h + '</span>' +
@@ -323,16 +352,17 @@
       }
     }
     addStars(stars);
-    recordSession({ t: 'quiz', table: quiz.table, score: quiz.score, total: QUIZ_LEN, stars: stars });
+    var grew = recordSession({ t: 'quiz', table: quiz.table, score: quiz.score, total: QUIZ_LEN, stars: stars });
     $('result-emoji').textContent = stars === 3 ? '🏆' : stars === 2 ? '🥳' : stars === 1 ? '😊' : '💪';
     $('result-stars').textContent = starString(stars);
-    $('result-text').textContent = quiz.score + ' / ' + QUIZ_LEN + (stars === 3 ? ' — Parfait !!' : stars >= 1 ? ' — Bien joué !' : ' — Tu vas y arriver, réessaie !');
+    $('result-text').textContent = quiz.score + ' / ' + QUIZ_LEN + (stars === 3 ? ' — Parfait !!' : stars >= 1 ? ' — Bien joué !' : ' — Tu vas y arriver, réessaie !') + streakText(grew);
     show('result');
     if (stars >= 2) { soundWin(); confetti(140); }
   }
 
   $('btn-replay').addEventListener('click', function () {
     if (lastActivity === 'words') startWords();
+    else if (lastActivity === 'english') startEnglish(eng.theme);
     else startQuiz(quiz.table);
   });
 
@@ -433,10 +463,10 @@
 
   function endWords() {
     lastActivity = 'words';
-    recordSession({ t: 'mots', score: words.score, total: words.list.length, stars: words.score });
+    var grew = recordSession({ t: 'mots', score: words.score, total: words.list.length, stars: words.score });
     $('result-emoji').textContent = '🌟';
     $('result-stars').textContent = '⭐⭐⭐';
-    $('result-text').textContent = 'Tous tes mots sont écrits ! ' + words.score + ' étoile' + (words.score > 1 ? 's' : '') + ' gagnée' + (words.score > 1 ? 's' : '') + ' !';
+    $('result-text').textContent = 'Tous tes mots sont écrits ! ' + words.score + ' étoile' + (words.score > 1 ? 's' : '') + ' gagnée' + (words.score > 1 ? 's' : '') + ' !' + streakText(grew);
     show('result');
     soundWin();
     confetti(140);
@@ -461,6 +491,173 @@
   $('word-input').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') checkTypedWord();
   });
+
+  /* ================================================================
+     ANGLAIS
+     ================================================================ */
+  /* [anglais, français, emoji] */
+  var ENGLISH = [
+    { name: 'Les animaux', emoji: '🐶', words: [
+      ['dog', 'le chien', '🐶'], ['cat', 'le chat', '🐱'], ['bird', "l'oiseau", '🐦'],
+      ['fish', 'le poisson', '🐟'], ['horse', 'le cheval', '🐴'], ['rabbit', 'le lapin', '🐰'],
+      ['mouse', 'la souris', '🐭'], ['bear', "l'ours", '🐻'], ['cow', 'la vache', '🐮'],
+      ['pig', 'le cochon', '🐷'], ['sheep', 'le mouton', '🐑'], ['duck', 'le canard', '🦆'],
+      ['frog', 'la grenouille', '🐸'], ['monkey', 'le singe', '🐵']
+    ] },
+    { name: 'Les couleurs', emoji: '🌈', words: [
+      ['red', 'rouge', '🔴'], ['blue', 'bleu', '🔵'], ['green', 'vert', '🟢'],
+      ['yellow', 'jaune', '🟡'], ['orange', 'orange', '🟠'], ['purple', 'violet', '🟣'],
+      ['pink', 'rose', '🌸'], ['black', 'noir', '⚫'], ['white', 'blanc', '⚪'],
+      ['brown', 'marron', '🟤']
+    ] },
+    { name: 'Les nombres', emoji: '🔢', words: [
+      ['one', 'un', '1️⃣'], ['two', 'deux', '2️⃣'], ['three', 'trois', '3️⃣'],
+      ['four', 'quatre', '4️⃣'], ['five', 'cinq', '5️⃣'], ['six', 'six', '6️⃣'],
+      ['seven', 'sept', '7️⃣'], ['eight', 'huit', '8️⃣'], ['nine', 'neuf', '9️⃣'],
+      ['ten', 'dix', '🔟']
+    ] },
+    { name: 'La nourriture', emoji: '🍎', words: [
+      ['apple', 'la pomme', '🍎'], ['banana', 'la banane', '🍌'], ['bread', 'le pain', '🍞'],
+      ['milk', 'le lait', '🥛'], ['water', "l'eau", '💧'], ['cheese', 'le fromage', '🧀'],
+      ['egg', "l'œuf", '🥚'], ['cake', 'le gâteau', '🍰'], ['strawberry', 'la fraise', '🍓'],
+      ['chocolate', 'le chocolat', '🍫'], ['ice cream', 'la glace', '🍦'], ['carrot', 'la carotte', '🥕']
+    ] },
+    { name: 'Le corps', emoji: '👃', words: [
+      ['eye', "l'œil", '👁️'], ['nose', 'le nez', '👃'], ['mouth', 'la bouche', '👄'],
+      ['ear', "l'oreille", '👂'], ['hand', 'la main', '✋'], ['foot', 'le pied', '🦶'],
+      ['arm', 'le bras', '💪'], ['leg', 'la jambe', '🦵'], ['tooth', 'la dent', '🦷'],
+      ['head', 'la tête', '🙂']
+    ] },
+    { name: "L'école", emoji: '🎒', words: [
+      ['book', 'le livre', '📖'], ['pencil', 'le crayon', '✏️'], ['pen', 'le stylo', '🖊️'],
+      ['school', "l'école", '🏫'], ['bag', 'le cartable', '🎒'], ['scissors', 'les ciseaux', '✂️'],
+      ['ruler', 'la règle', '📏'], ['chair', 'la chaise', '🪑'], ['paper', 'le papier', '📄'],
+      ['teacher', 'la maîtresse', '👩‍🏫']
+    ] },
+    { name: 'La famille', emoji: '👨‍👩‍👧‍👦', words: [
+      ['mum', 'maman', '👩'], ['dad', 'papa', '👨'], ['sister', 'la sœur', '👧'],
+      ['brother', 'le frère', '👦'], ['baby', 'le bébé', '👶'], ['grandma', 'mamie', '👵'],
+      ['grandpa', 'papi', '👴'], ['family', 'la famille', '👨‍👩‍👧‍👦']
+    ] }
+  ];
+
+  var eng = { theme: 0, list: [], index: 0, score: 0, locked: false };
+
+  function themeStars(i) {
+    return pget('english', {})['t' + i] || 0;
+  }
+
+  function renderThemeGrid() {
+    var grid = $('theme-grid');
+    grid.innerHTML = '';
+    for (var i = 0; i < ENGLISH.length; i++) {
+      var btn = document.createElement('button');
+      btn.className = 'theme-btn';
+      btn.innerHTML = '<span class="theme-emoji">' + ENGLISH[i].emoji + '</span>' +
+        '<span class="theme-name">' + ENGLISH[i].name + '</span>' +
+        '<span class="stars">' + starString(themeStars(i)) + '</span>';
+      btn.setAttribute('data-theme', i);
+      grid.appendChild(btn);
+    }
+  }
+
+  $('theme-grid').addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-theme]');
+    if (btn) startEnglish(parseInt(btn.getAttribute('data-theme'), 10));
+  });
+
+  function speakEnglish(text) {
+    try {
+      if (!window.speechSynthesis) return;
+      speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-GB';
+      u.rate = 0.8;
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+
+  function startEnglish(theme) {
+    eng.theme = theme;
+    eng.list = shuffle(ENGLISH[theme].words).slice(0, 10);
+    eng.index = 0;
+    eng.score = 0;
+    nextEnglish();
+    show('english');
+  }
+
+  function nextEnglish() {
+    var word = eng.list[eng.index];
+    eng.locked = false;
+    $('eng-emoji').textContent = word[2];
+    $('eng-fr').textContent = word[1];
+    $('eng-feedback').textContent = '';
+    $('eng-feedback').className = 'quiz-feedback';
+    $('eng-progress-fill').style.width = (eng.index / eng.list.length * 100) + '%';
+    $('eng-score').textContent = eng.score;
+    /* 4 propositions : la bonne + 3 autres du même thème */
+    var others = shuffle(ENGLISH[eng.theme].words.filter(function (w) { return w[0] !== word[0]; })).slice(0, 3);
+    var choices = shuffle(others.concat([word]));
+    var box = $('eng-choices');
+    box.innerHTML = '';
+    for (var i = 0; i < choices.length; i++) {
+      var btn = document.createElement('button');
+      btn.textContent = choices[i][0];
+      btn.setAttribute('data-eng', choices[i][0]);
+      box.appendChild(btn);
+    }
+  }
+
+  $('eng-choices').addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-eng]');
+    if (!btn || eng.locked) return;
+    eng.locked = true;
+    var word = eng.list[eng.index];
+    var good = btn.getAttribute('data-eng') === word[0];
+    var fb = $('eng-feedback');
+    if (good) {
+      eng.score++;
+      btn.classList.add('good');
+      fb.textContent = ['Great!', 'Well done!', 'Perfect!', 'Super!'][Math.floor(Math.random() * 4)] + ' 🎉';
+      fb.className = 'quiz-feedback good';
+      soundGood();
+      confetti(25);
+    } else {
+      btn.classList.add('bad');
+      var all = $('eng-choices').querySelectorAll('[data-eng]');
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].getAttribute('data-eng') === word[0]) all[i].classList.add('good');
+      }
+      fb.textContent = word[1] + ' = « ' + word[0] + ' » 💪';
+      fb.className = 'quiz-feedback bad';
+      soundBad();
+    }
+    speakEnglish(word[0]);
+    $('eng-score').textContent = eng.score;
+    eng.index++;
+    setTimeout(function () {
+      if (eng.index >= eng.list.length) endEnglish();
+      else nextEnglish();
+    }, good ? 1100 : 2200);
+  });
+
+  function endEnglish() {
+    lastActivity = 'english';
+    var total = eng.list.length;
+    var stars = eng.score >= total ? 3 : eng.score >= total * 0.8 ? 2 : eng.score >= total * 0.5 ? 1 : 0;
+    var themes = pget('english', {});
+    if (stars > (themes['t' + eng.theme] || 0)) {
+      themes['t' + eng.theme] = stars;
+      pset('english', themes);
+    }
+    addStars(stars);
+    var grew = recordSession({ t: 'anglais', theme: ENGLISH[eng.theme].name, score: eng.score, total: total, stars: stars });
+    $('result-emoji').textContent = stars === 3 ? '🏆' : stars === 2 ? '🥳' : stars === 1 ? '😊' : '💪';
+    $('result-stars').textContent = starString(stars);
+    $('result-text').textContent = eng.score + ' / ' + total + (stars === 3 ? ' — Perfect!!' : stars >= 1 ? ' — Well done!' : ' — Tu vas y arriver, réessaie !') + streakText(grew);
+    show('result');
+    if (stars >= 2) { soundWin(); confetti(140); }
+  }
 
   /* ================================================================
      COIN DES PARENTS

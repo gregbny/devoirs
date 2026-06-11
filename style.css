@@ -69,6 +69,7 @@ button { font-family: inherit; cursor: pointer; }
   font-weight: 700;
   box-shadow: 0 3px 0 #fdcb6e;
 }
+.streak-bank { background: #fab1a0; box-shadow: 0 3px 0 #e17055; }
 .home-cards { display: flex; flex-direction: column; gap: 24px; margin-top: 48px; }
 @media (min-width: 600px) { .home-cards { flex-direction: row; } }
 .home-card {
@@ -84,8 +85,9 @@ button { font-family: inherit; cursor: pointer; }
   transition: transform .1s;
 }
 .home-card:active { transform: scale(.96); }
-.card-tables { background: linear-gradient(135deg, #6c5ce7, #a29bfe); box-shadow: 0 6px 0 #4834d4; }
-.card-words  { background: linear-gradient(135deg, #00b894, #55efc4); box-shadow: 0 6px 0 #019875; }
+.card-tables  { background: linear-gradient(135deg, #6c5ce7, #a29bfe); box-shadow: 0 6px 0 #4834d4; }
+.card-words   { background: linear-gradient(135deg, #00b894, #55efc4); box-shadow: 0 6px 0 #019875; }
+.card-english { background: linear-gradient(135deg, #d63031, #ff7675); box-shadow: 0 6px 0 #b71540; }
 .card-emoji { font-size: 3.4rem; }
 .card-title { font-size: 1.7rem; font-weight: 800; }
 .card-sub { font-size: 1rem; opacity: .9; }
@@ -126,6 +128,54 @@ button { font-family: inherit; cursor: pointer; }
 .table-btn .num { font-size: 2rem; font-weight: 800; color: #6c5ce7; }
 .table-btn .stars { font-size: .9rem; letter-spacing: 2px; }
 .btn-mix { margin-top: 24px; background: linear-gradient(135deg, #e17055, #fdcb6e); box-shadow: 0 5px 0 #d35400; }
+
+/* ===== anglais ===== */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 8px;
+}
+.theme-btn {
+  border: none;
+  border-radius: 22px;
+  background: #fff;
+  padding: 18px 8px 12px;
+  box-shadow: 0 4px 0 #e0d8c3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.theme-btn:active { transform: translateY(2px); box-shadow: none; }
+.theme-emoji { font-size: 2.4rem; }
+.theme-name { font-size: 1.15rem; font-weight: 700; }
+.theme-btn .stars { font-size: .9rem; letter-spacing: 2px; }
+
+.eng-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.eng-emoji { font-size: 5.5rem; }
+.eng-fr { font-size: 2rem; font-weight: 700; color: #636e72; }
+.eng-choices {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto;
+  padding-bottom: 8px;
+}
+.eng-choices button {
+  border: none;
+  border-radius: 20px;
+  background: #fff;
+  font-size: 1.6rem;
+  font-weight: 700;
+  padding: 22px 8px;
+  box-shadow: 0 4px 0 #e0d8c3;
+}
+.eng-choices button:active { transform: translateY(2px); box-shadow: none; }
+.eng-choices button.good { background: #00b894; color: #fff; box-shadow: 0 4px 0 #019875; }
+.eng-choices button.bad { background: #d63031; color: #fff; box-shadow: 0 4px 0 #b71540; }
 
 /* ===== boutons génériques ===== */
 .btn-big {
