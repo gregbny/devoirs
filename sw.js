@@ -1,5 +1,5 @@
 /* Service worker — cache-first pour fonctionner hors-ligne */
-var CACHE = 'devoirs-v5';
+var CACHE = 'devoirs-v6';
 var ASSETS = [
   './',
   './index.html',

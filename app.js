@@ -194,6 +194,46 @@
   function soundBad() { beep([220, 180]); }
   function soundWin() { beep([523, 659, 784, 1047, 1319]); }
 
+  /* ---------- synthèse vocale ----------
+     Sans voix explicite, Safari peut lire l'anglais avec la voix française de
+     l'appareil (accent !) ; on choisit donc une vraie voix par langue.
+     getVoices() se remplit de façon asynchrone, d'où l'écouteur voiceschanged. */
+  var VOICE_PREFS = { en: ['en-gb', 'en-us', 'en'], fr: ['fr-fr', 'fr-ca', 'fr'] };
+  var voiceFor = {};
+  function pickVoices() {
+    try {
+      var voices = speechSynthesis.getVoices();
+      for (var lang in VOICE_PREFS) {
+        var prefs = VOICE_PREFS[lang];
+        voiceFor[lang] = null;
+        for (var p = 0; p < prefs.length && !voiceFor[lang]; p++) {
+          for (var i = 0; i < voices.length; i++) {
+            var l = (voices[i].lang || '').toLowerCase().replace('_', '-');
+            if (l.indexOf(prefs[p]) === 0) { voiceFor[lang] = voices[i]; break; }
+          }
+        }
+      }
+    } catch (e) {}
+  }
+  if (window.speechSynthesis) {
+    pickVoices();
+    speechSynthesis.addEventListener('voiceschanged', pickVoices);
+  }
+
+  function speak(text, lang, fallbackLang, rate) {
+    try {
+      if (!window.speechSynthesis) return;
+      if (!voiceFor[lang]) pickVoices();
+      speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      var v = voiceFor[lang];
+      if (v) u.voice = v;
+      u.lang = v ? v.lang : fallbackLang;
+      u.rate = rate;
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+
   /* ---------- confetti ---------- */
   var confetti = (function () {
     var canvas = $('confetti-canvas');
@@ -456,14 +496,7 @@
   }
 
   function speakWord() {
-    try {
-      if (!window.speechSynthesis) return;
-      speechSynthesis.cancel();
-      var u = new SpeechSynthesisUtterance(currentWord());
-      u.lang = 'fr-FR';
-      u.rate = 0.85;
-      speechSynthesis.speak(u);
-    } catch (e) {}
+    speak(currentWord(), 'fr', 'fr-FR', 0.85);
   }
 
   $('btn-speak').addEventListener('click', speakWord);
@@ -612,14 +645,7 @@
   });
 
   function speakEnglish(text) {
-    try {
-      if (!window.speechSynthesis) return;
-      speechSynthesis.cancel();
-      var u = new SpeechSynthesisUtterance(text);
-      u.lang = 'en-GB';
-      u.rate = 0.8;
-      speechSynthesis.speak(u);
-    } catch (e) {}
+    speak(text, 'en', 'en-GB', 0.8);
   }
 
   function startEnglish(theme) {
